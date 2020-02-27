@@ -1,0 +1,123 @@
+---
+title: "Portfolio 4 Anova"
+author: "Kasper Michelsen"
+date: "11/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(MuMIn, tidyverse, ggplot2, pastecs, WSR2, multcomp, reshape2)
+```
+
+```{r}
+df <- read_csv("WHO_suicide_statistics.csv")
+
+model <- lm(suicides_no ~ age, df)
+
+summary(model)
+
+
+summary(df)
+
+
+ggplot(df, aes(y=suicides_no, x=age))+geom_boxplot()
+
+```
+
+```{r}
+by(df$suicides_no, df$age, mean)
+```
+
+```{r}
+anova <- aov(suicides_no ~ age, data= df)
+summary(anova)
+```
+
+```{r}
+as.factor(df$age)
+tukeystest <- summary(glht(aov(suicides_no ~ age, data = df), linfct = mcp(age = "Tukey")))
+tukeystest
+
+which(is.na(df$population))
+```
+
+```{r}
+#model1 <- lm(suicides_no ~ year, df)
+#plot(model1)
+ggplot(df, aes(y=suicides_no, x=year))+geom_histogram()
+```
+
+```{r}
+model3 <- lm(suicides_no ~ sex + age + year + country, df)
+```
+
+
+```{r}
+pacman::p_load(ggplot2, reshape2)
+
+#plot as heatmap
+qplot(x=Var1, y=Var2, 
+      data=melt(cor(df, use="p")), 
+      fill=value, 
+      geom="tile") +
+   scale_fill_gradient2(limits=c(-1, 1))
+
+
+
+##### Highlight only the 'worrying' correlation values
+#plot only values above .7
+plot_df <- melt(cor(child))
+plot_df$value[plot_df$value < 0.7 & plot_df$value > - 0.7] = 0
+qplot(x=Var1, y=Var2, data=plot_df, fill=value, geom="tile") +
+   scale_fill_gradient2(limits=c(-1, 1))
+```
+
+```{r}
+df$suicide_prop <- ((df$suicides_no/df$population)*100000)
+
+df$country <- as.factor(df$country)
+df$country <- as.numeric(df$country)
+df$sex <- as.factor(df$sex)
+df$sex <- as.numeric(df$sex)
+df$age <- as.factor(df$age)
+df$age <- as.numeric(df$age)
+
+df <- na.omit(df)
+
+library(ggplot2)
+library(reshape2)
+qplot(x = Var1, y = Var2,
+      data = melt(cor(df)),
+      fill = value,
+      geom = "tile") +
+  scale_fill_gradient2(limits = c(-1, 1))
+
+
+
+plot_df <- melt(cor(df))
+plot_df$value[plot_df$value < 0.2 & plot_df$value > - 0.2] = 0
+qplot(x=Var1, y=Var2, data=plot_df, fill=value, geom="tile") +
+   scale_fill_gradient2(limits=c(-1, 1))
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
